@@ -116,12 +116,24 @@ namespace HW_9_bot
                     var action = messageText.Split(' ')[0] switch
                     {
                         "/all" => SendInlineKeyboard(botClient, message),
-                        "/remove" => RemoveKeyboard(botClient, message),
+                        "/start"=> SendHello(botClient, message),
                         _ => Usage(botClient, message)
                     };
                     Message sentMessage = await action;
                     Console.WriteLine($"The message was sent with id: {sentMessage.MessageId}");
 
+
+                static async Task<Message> SendHello(ITelegramBotClient botClient, Message message)
+                {
+                    await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
+
+                    // Simulate longer running task
+                    await Task.Delay(500);
+                    return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+                                        text: "Hi, let's try to save your files!\r\n" +
+                                        "If you want download one of them - just type </all>  ",
+                                        replyMarkup: new ReplyKeyboardRemove());
+                }
 
                     async void DownLoad(string fileId, string path)
                     {
@@ -161,6 +173,7 @@ namespace HW_9_bot
                                                                 text: "Choose doc",
                                                                 replyMarkup: keyboardMarkup);
                     }
+
                     static InlineKeyboardButton[][] GetInlineKeyboard(string[] stringArray)
                     {
                         var keyboardInline = new List<InlineKeyboardButton[]>();
@@ -176,19 +189,12 @@ namespace HW_9_bot
                         return keyboardInline.ToArray();
                     }
 
-                    static async Task<Message> RemoveKeyboard(ITelegramBotClient botClient, Message message)
-                    {
-                        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                                    text: "Removing keyboard",
-                                                                    replyMarkup: new ReplyKeyboardRemove());
-                    }
-
 
                     static async Task<Message> Usage(ITelegramBotClient botClient, Message message)
                     {
                         const string usage = "Usage:\n" +
                                              "/all   - send inline keyboard docs\n" +
-                                             "/remove   - remove custom keyboard\n";
+                                             "/start   - information\n";
 
                         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
                                                                     text: usage,
